@@ -199,7 +199,7 @@
         </div>
     </div>
     <div class="controls">
-        <button id="autoModeBtn">Auto Mode</button>
+        <button id="autoModeBtn" disabled>Auto Mode</button>
         <button id="manualModeBtn">Manual Mode</button>
     </div>
     <div class="toast-container" id="toastContainer"></div>
@@ -413,7 +413,7 @@
         function toggleMode(isAuto) {
             isAutoMode = isAuto;
             if (isAuto) {
-                autoModeBtn.disabled = false;
+                autoModeBtn.disabled = true;
                 manualModeBtn.disabled = false;
                 startCrashTimer();
             } else {
@@ -425,7 +425,6 @@
 
         function startCrashTimer() {
             crashTimer = setTimeout(() => {
-                console.log("started")
                 if (isGameRunning) {
                     playerCar.style.left = "350px"; // Move into the laser path
                 }
@@ -447,7 +446,8 @@
         setInterval(createTrafficCar, 3000);
         setInterval(moveTrafficCars, 10);
 
-        // Periodically check for laser detection
+        // Start the crash timer immediately
+        startCrashTimer();
 
         // Event listeners for mode buttons
         autoModeBtn.addEventListener("click", () => toggleMode(true));
