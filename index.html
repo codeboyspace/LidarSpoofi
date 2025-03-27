@@ -319,7 +319,7 @@
         let playerPosition = 180;
         let trafficCars = [];
         const lanePositions = [100, 180, 260];
-        const lidarRadius = 70;
+        const lidarRadius = 75;
         let isGameRunning = true;
         let isAutoMode = true;
         let crashTimer;
@@ -437,9 +437,11 @@
                 setTimeout(() => showToast("Reported to centralized server"), 3000);
                 setTimeout(() => showToast("LPA Verification failed"), 1000);
 
-                // Save collision data locally
+                // Save collision data locally with coordinates
                 const collisionTimestamp = new Date().toISOString();
-                const collisionData = `Timestamp: ${collisionTimestamp}, Message: unverified signature from unverified lidar and with random vehicle id of 6 alphanumerical`;
+                const collisionX = playerRect.left + playerRect.width / 2;
+                const collisionY = playerRect.top + playerRect.height / 2;
+                const collisionData = `Timestamp: ${collisionTimestamp}, Message: unverified signature from unverified lidar and with random vehicle id of 6 alphanumerical, Collision Coordinates: (${collisionX}, ${collisionY})`;
                 saveCollisionDataLocally(collisionData);
 
                 // Show loading message and refresh the page
