@@ -3,37 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lidar Autonomous Traffic Simulation</title>
+    <title>Night-Time Lidar Autonomous Traffic Simulation</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background: green;
+            background: #000;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             position: relative;
+            font-family: Arial, sans-serif;
         }
         .road {
             position: relative;
             width: 400px;
             height: 100vh;
-            background: gray;
+            background: #1a1a1a;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border-left: 10px solid black;
-            border-right: 10px solid black;
+            border-left: 10px solid #333;
+            border-right: 10px solid #333;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
         .lane {
             width: 100%;
             height: 20px;
-            background: white;
+            background: #fff;
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
             animation: moveLanes 2s linear infinite;
+            opacity: 0.3;
         }
         @keyframes moveLanes {
             from { top: -20px; }
@@ -54,11 +57,11 @@
             position: absolute;
             width: 40px;
             height: 60px;
-            background: red;
+            background: #ff0000;
             top: 5px;
             left: 5px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
         .car-wheel {
             position: absolute;
@@ -85,6 +88,39 @@
             bottom: 10px;
             right: 2px;
         }
+        .headlight {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 5px #fff;
+        }
+        .headlight-left {
+            top: 5px;
+            left: 5px;
+        }
+        .headlight-right {
+            top: 5px;
+            right: 5px;
+        }
+        .headlight-reflection {
+            position: absolute;
+            width: 10px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            transform: rotate(45deg);
+            opacity: 0.5;
+        }
+        .headlight-reflection-left {
+            top: 40px;
+            left: 0;
+        }
+        .headlight-reflection-right {
+            top: 40px;
+            right: 0;
+        }
         .traffic-car {
             position: absolute;
             width: 50px;
@@ -96,11 +132,11 @@
             position: absolute;
             width: 40px;
             height: 60px;
-            background: yellow;
+            background: #ffff00;
             top: 5px;
             left: 5px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
         .traffic-car-wheel {
             position: absolute;
@@ -129,7 +165,7 @@
         }
         .lidar-circle {
             position: absolute;
-            border: 2px solid blue;
+            border: 2px solid #00f;
             border-radius: 50%;
             pointer-events: none;
             z-index: 10;
@@ -138,12 +174,12 @@
             position: absolute;
             width: 20px;
             height: 100px;
-            background: darkgray;
+            background: #a9a9a9;
             z-index: 5;
         }
         .laser-beam {
             position: absolute;
-            background: linear-gradient(to right, rgba(255,0,0,0.7), rgba(255,0,0,0.3));
+            background: linear-gradient(to right, rgba(255, 0, 0, 0.7), rgba(255, 0, 0, 0.3));
             width: 3px;
             height: 100vh;
             z-index: 15;
@@ -164,6 +200,19 @@
         .controls button {
             padding: 10px 20px;
             font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+        .controls button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
         .toast-container {
             position: absolute;
@@ -202,6 +251,33 @@
         .loading-container.show {
             display: flex;
         }
+        .street-light {
+            position: absolute;
+            width: 10px;
+            height: 40px;
+            background: #ffffe0;
+            border-radius: 50%;
+            box-shadow: 0 0 20px 10px #ffffe0;
+            z-index: 1;
+        }
+        .street-light-1 {
+            top: 100px;
+            left: 100px;
+        }
+        .street-light-2 {
+            top: 300px;
+            left: 300px;
+        }
+        .distance-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 20;
+        }
     </style>
 </head>
 <body>
@@ -212,13 +288,20 @@
             <div class="car-wheel car-wheel-front-right"></div>
             <div class="car-wheel car-wheel-back-left"></div>
             <div class="car-wheel car-wheel-back-right"></div>
+            <div class="headlight headlight-left"></div>
+            <div class="headlight headlight-right"></div>
+            <div class="headlight-reflection headlight-reflection-left"></div>
+            <div class="headlight-reflection headlight-reflection-right"></div>
             <div id="lidar" class="lidar-circle"></div>
         </div>
+        <div class="street-light street-light-1"></div>
+        <div class="street-light street-light-2"></div>
     </div>
     <div class="controls">
         <button id="autoModeBtn" disabled>Auto Mode</button>
         <button id="manualModeBtn">Manual Mode</button>
     </div>
+    <div class="distance-display" id="distanceDisplay">Distance: 0m</div>
     <div class="toast-container" id="toastContainer"></div>
     <div class="loading-container" id="loadingContainer">
         <div>Updating dataset, please wait...</div>
@@ -231,11 +314,12 @@
         const manualModeBtn = document.getElementById("manualModeBtn");
         const toastContainer = document.getElementById("toastContainer");
         const loadingContainer = document.getElementById("loadingContainer");
+        const distanceDisplay = document.getElementById("distanceDisplay");
 
         let playerPosition = 180;
         let trafficCars = [];
         const lanePositions = [100, 180, 260];
-        const lidarRadius = 55;
+        const lidarRadius = 70;
         let isGameRunning = true;
         let isAutoMode = true;
         let crashTimer;
@@ -480,12 +564,31 @@
             }, 26000); // 26 seconds
         }
 
+        function updateDistanceDisplay() {
+            const playerRect = playerCar.getBoundingClientRect();
+            let closestDistance = Infinity;
+
+            trafficCars.forEach(car => {
+                const carRect = car.getBoundingClientRect();
+                const dx = (playerRect.left + playerRect.width / 2) - (carRect.left + carRect.width / 2);
+                const dy = (playerRect.top + playerRect.height / 2) - (carRect.top + carRect.height / 2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                }
+            });
+
+            distanceDisplay.innerText = `Distance: ${Math.round(closestDistance)}m`;
+        }
+
         // Game loop
         function gameLoop() {
             if (!isGameRunning) return;
 
             updateLidarCircle();
             checkCollisionAndChangeLane();
+            updateDistanceDisplay();
             requestAnimationFrame(gameLoop);
         }
 
